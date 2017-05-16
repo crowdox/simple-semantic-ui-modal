@@ -11,7 +11,6 @@ const requestAnimationFrame = window.requestAnimationFrame ||
 // TODO:
 // - Add body classes and height
 // - Add click away
-// - Observe changes
 // - Keyboard escape?
 
 export default Ember.Mixin.create(SpreadMixin, SSTransition, {
@@ -54,21 +53,19 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
       //        }
       //      }
     }
+    this.observeChanges();
+  },
 
-    // Observe Changes
-    // observeChanges: function() {
-    //   if('MutationObserver' in window) {
-    //     observer = new MutationObserver(function(mutations) {
-    //       module.debug('DOM tree modified, refreshing');
-    //       module.refresh();
-    //     });
-    //     observer.observe(element, {
-    //       childList : true,
-    //       subtree   : true
-    //     });
-    //     module.debug('Setting up mutation observer', observer);
-    //   }
-    // },
+  // Observe Changes
+  observeChanges() {
+    if ('MutationObserver' in window) {
+      let observer = new MutationObserver(() => this.doRefresh());
+      observer.observe(this.get('element'), {
+        childList : true,
+        subtree   : true
+      });
+      this.set('observer', observer);
+    }
   },
 
   closeModal() {
@@ -86,6 +83,9 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
   willDestroyElement() {
     this._super(...arguments);
     window.$(window).off('resize.ss-modal-' + this.get('elementId'));
+    if (this.get('observer') != null) {
+      this.get('observer').disconnect();
+    }
     // Ember.$(document).on('click.inline-edit-' + this.get('elementId'), (event) => this.detect_click_away.apply(this, [event]));
   },
 
