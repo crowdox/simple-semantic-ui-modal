@@ -8,11 +8,6 @@ const requestAnimationFrame = window.requestAnimationFrame ||
                               window.msRequestAnimationFrame ||
                               function(callback) { setTimeout(callback, 0) };
 
-// TODO:
-// - Add body classes and height
-// - Add click away
-// - Keyboard escape?
-
 export default Ember.Mixin.create(SpreadMixin, SSTransition, {
   classNames: ['ui', 'modal'],
 
@@ -21,42 +16,53 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
   offset: 0,
   closable: true,
 
+  _isShown: false,
+
   // Transition Defaults
   transitionMode: 'scale',
   transitionDuration: 500,
 
+  // Setup and destroy
   didInsertElement() {
     this._super(...arguments);
-    this.setScreenHeight();
+    // Ensure scrolling is gone for initial render
     this.removeScrolling();
+    // Add body classes
+    window.$('body').addClass('dimmable dimmed');
+    // Set values
     this.doRefresh();
+    this.transitionIn();
     window.$(window).on('resize.ss-modal-' + this.get('elementId'), Ember.run.bind(this, this.doRefreshWithAnimation));
     if (this.get('closable')) {
-      // Ember.$(document).on('click.inline-edit-' + this.get('elementId'), (event) => this.detect_click_away.apply(this, [event]));
-      // Click away
-      // click: function(event) {
-      //      var
-      //        $target   = $(event.target),
-      //        isInModal = ($target.closest(selector.modal).length > 0),
-      //        isInDOM   = $.contains(document.documentElement, event.target)
-      //      ;
-      //      if(!isInModal && isInDOM) {
-      //        module.debug('Dimmer clicked, hiding all modals');
-      //        if( module.is.active() ) {
-      //          module.remove.clickaway();
-      //          if(settings.allowMultiple) {
-      //            module.hide();
-      //          }
-      //          else {
-      //            module.hideAll();
-      //          }
-      //        }
-      //      }
+      window.$(document).on('click.ss-modal-' + this.get('elementId'), Ember.run.bind(this, this.checkClick));
     }
     this.observeChanges();
   },
 
-  // Observe Changes
+  willDestroyElement() {
+    this._super(...arguments);
+    window.$(window).off('resize.ss-modal-' + this.get('elementId'));
+    window.$(document).off('click.ss-modal-' + this.get('elementId'));
+    if (this.get('observer') != null) {
+      this.get('observer').disconnect();
+    }
+    window.$('body').removeClass('dimmable dimmed');
+  },
+
+  // Events
+  checkClick(event) {
+    if (!this.get('_isShown')) {
+      return;
+    }
+    let target = window.$(event.target);
+    let isInModal = target.closest(this.$()).length > 0;
+    let isInDOM = window.$.contains(window.document.documentElement, event.target);
+
+    if (!isInModal && isInDOM) {
+      this.closeModal();
+    }
+  },
+
   observeChanges() {
     if ('MutationObserver' in window) {
       let observer = new MutationObserver(() => this.doRefresh());
@@ -68,11 +74,16 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
     }
   },
 
+  // Public method to close
   closeModal() {
     this.transitionOut();
   },
 
   // Overwrite transition callback
+  shown() {
+    this.set('_isShown', true);
+  },
+
   hidden() {
     let modalClosed = this.get('modal_closed');
     if (typeof modalClosed === "function") {
@@ -80,34 +91,21 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
     }
   },
 
-  willDestroyElement() {
-    this._super(...arguments);
-    window.$(window).off('resize.ss-modal-' + this.get('elementId'));
-    if (this.get('observer') != null) {
-      this.get('observer').disconnect();
-    }
-    // Ember.$(document).on('click.inline-edit-' + this.get('elementId'), (event) => this.detect_click_away.apply(this, [event]));
-  },
-
   // Functions
-  doRefresh() {
-    this.setType();
-    this.setPosition();
-    this.transitionIn();
+  doRefresh(sizes) {
+    if (Ember.isBlank(sizes)) {
+      sizes = this.getSizes();
+    }
+    this.setScreenHeight(sizes);
+    this.setType(sizes);
+    this.setPosition(sizes);
   },
-
-  // refresh: function() {
-  //   module.remove.scrolling();
-  //   module.cacheSizes();
-  //   module.set.screenHeight();
-  //   module.set.type();
-  //   module.set.position();
-  // },
 
   doRefreshWithAnimation() {
-    requestAnimationFrame(Ember.run.bind(this, this.doRefresh));
+    requestAnimationFrame(Ember.run.bind(this, this.doRefresh, null));
   },
 
+  // Method functions
   getSizes() {
     let modalHeight = this.$().outerHeight();
     return {
@@ -117,28 +115,28 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
     };
   },
 
-  canFit() {
-    let sizes = this.getSizes();
-    return ( ( sizes.height + (this.get('padding') * 2) ) < sizes.contextHeight);
-  },
-
-  getDimmer() {
-    return window.$('.ui.modals.page.dimmer');
+  canFit(sizes) {
+    return sizes.height + (this.get('padding') * 2) < sizes.contextHeight;
   },
 
   removeScrolling() {
-    this.getDimmer().removeClass('scrolling');
+    window.$('body').removeClass('scrolling');
+    this.$().parent().css({
+      overflow: ''
+    });
     this.$().removeClass('scrolling');
   },
 
   setScrolling() {
-    this.getDimmer().addClass('scrolling');
+    window.$('body').addClass('scrolling');
+    this.$().parent().css({
+      overflow: 'auto'
+    });
     this.$().addClass('scrolling');
   },
 
-  setPosition() {
-    if (this.canFit()) {
-      let sizes = this.getSizes();
+  setPosition(sizes) {
+    if (this.canFit(sizes)) {
       this.$().css({
         top: '',
         marginTop: -(sizes.height / 2)
@@ -151,17 +149,16 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
     }
   },
 
-  setScreenHeight() {
-    if (this.canFit()) {
+  setScreenHeight(sizes) {
+    if (this.canFit(sizes)) {
       window.$('body').css('height', '');
     } else {
-      let sizes = this.getSizes();
       window.$('body').css('height', sizes.height + (this.get('padding') * 2) );
     }
   },
 
-  setType() {
-    if (this.canFit()) {
+  setType(sizes) {
+    if (this.canFit(sizes)) {
       this.removeScrolling();
     } else {
       this.setScrolling();
