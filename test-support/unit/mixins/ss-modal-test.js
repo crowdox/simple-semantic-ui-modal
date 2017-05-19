@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import SsModalMixin from 'simple-semantic-ui-modal/mixins/ss-modal';
+import SsModalMixin from 'manage/mixins/ss-modal';
 import { module, test } from 'qunit';
 
 module('Unit | Mixin | ss modal');

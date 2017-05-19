@@ -75,15 +75,22 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
   },
 
   // Public method to close
+  closing() { }, // callback hook
+
   closeModal() {
+    this.closing();
     this.transitionOut();
   },
+
+  opened() { }, // callback hook
 
   // Overwrite transition callback
   shown() {
     this.set('_isShown', true);
+    this.opened();
   },
 
+  // Overwrite transition callback
   hidden() {
     let modalClosed = this.get('modal_closed');
     if (typeof modalClosed === "function") {
@@ -162,6 +169,12 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
       this.removeScrolling();
     } else {
       this.setScrolling();
+    }
+  },
+
+  actions: {
+    close() {
+      this.closeModal();
     }
   }
 });

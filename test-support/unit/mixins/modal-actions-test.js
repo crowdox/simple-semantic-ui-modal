@@ -1,5 +1,5 @@
 import Ember from 'ember';
-import ModalActionsMixin from 'simple-semantic-ui-modal/mixins/modal-actions';
+import ModalActionsMixin from 'manage/mixins/modal-actions';
 import { module, test } from 'qunit';
 
 module('Unit | Mixin | modal actions');
