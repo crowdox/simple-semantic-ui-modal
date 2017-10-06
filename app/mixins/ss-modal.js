@@ -1,5 +1,6 @@
 import Ember from 'ember';
 import SpreadMixin from 'ember-spread';
+// Relative path works since both survey and manage are in lib/...
 import SSTransition from '../mixins/ss-transition';
 
 const requestAnimationFrame = window.requestAnimationFrame ||

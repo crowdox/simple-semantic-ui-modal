@@ -1,4 +1,5 @@
 import Ember from 'ember';
+// Relative path works since both survey and manage are in lib/...
 import ModalActionsMixin from '../../../mixins/modal-actions';
 import { module, test } from 'qunit';
 
