@@ -1,6 +1,6 @@
 import Ember from 'ember';
 import SpreadMixin from 'ember-spread';
-import SSTransition from 'manage/mixins/ss-transition';
+import SSTransition from '../mixins/ss-transition';
 
 const requestAnimationFrame = window.requestAnimationFrame ||
                               window.mozRequestAnimationFrame ||
