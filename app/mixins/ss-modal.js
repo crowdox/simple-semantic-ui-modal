@@ -101,6 +101,7 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
 
   // Functions
   doRefresh(sizes) {
+    if (this.get('isDestroyed') || this.get('isDestroying')) { return; }
     if (Ember.isBlank(sizes)) {
       sizes = this.getSizes();
     }
