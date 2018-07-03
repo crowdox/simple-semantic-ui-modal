@@ -1,6 +1,8 @@
-import Ember from 'ember';
+import { A } from '@ember/array';
+import { guidFor } from '@ember/object/internals';
+import Mixin from '@ember/object/mixin';
 
-export default Ember.Mixin.create({
+export default Mixin.create({
   actions: {
     open_modal: function() {
       let args = Array.prototype.slice.call(arguments);
@@ -12,11 +14,11 @@ export default Ember.Mixin.create({
       if (options == null) {
         options = {};
       }
-      let modalId = Ember.guidFor(name);
+      let modalId = guidFor(name);
       options.modal_closed = this.generateModalClosed(controller, modalId);
 
       if (controller.get('modals') == null) {
-        controller.set('modals', Ember.A());
+        controller.set('modals', A());
       }
       controller.get('modals').pushObject({
         id: modalId,

@@ -1,4 +1,6 @@
-import Ember from 'ember';
+import { isBlank } from '@ember/utils';
+import { bind } from '@ember/runloop';
+import Mixin from '@ember/object/mixin';
 import SpreadMixin from 'ember-spread';
 // Relative path works since both survey and manage are in lib/...
 import SSTransition from '../mixins/ss-transition';
@@ -9,7 +11,7 @@ const requestAnimationFrame = window.requestAnimationFrame ||
                               window.msRequestAnimationFrame ||
                               function(callback) { setTimeout(callback, 0) };
 
-export default Ember.Mixin.create(SpreadMixin, SSTransition, {
+export default Mixin.create(SpreadMixin, SSTransition, {
   classNames: ['ui', 'modal'],
 
   // Defaults
@@ -33,9 +35,9 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
     // Set values
     this.doRefresh();
     this.transitionIn();
-    window.$(window).on('resize.ss-modal-' + this.get('elementId'), Ember.run.bind(this, this.doRefreshWithAnimation));
+    window.$(window).on('resize.ss-modal-' + this.get('elementId'), bind(this, this.doRefreshWithAnimation));
     if (this.get('closable')) {
-      window.$(document).on('click.ss-modal-' + this.get('elementId'), Ember.run.bind(this, this.checkClick));
+      window.$(document).on('click.ss-modal-' + this.get('elementId'), bind(this, this.checkClick));
     }
     this.observeChanges();
   },
@@ -102,7 +104,7 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
   // Functions
   doRefresh(sizes) {
     if (this.get('isDestroyed') || this.get('isDestroying')) { return; }
-    if (Ember.isBlank(sizes)) {
+    if (isBlank(sizes)) {
       sizes = this.getSizes();
     }
     this.setScreenHeight(sizes);
@@ -111,7 +113,7 @@ export default Ember.Mixin.create(SpreadMixin, SSTransition, {
   },
 
   doRefreshWithAnimation() {
-    requestAnimationFrame(Ember.run.bind(this, this.doRefresh, null));
+    requestAnimationFrame(bind(this, this.doRefresh, null));
   },
 
   // Method functions
