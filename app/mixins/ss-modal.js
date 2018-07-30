@@ -9,7 +9,7 @@ const requestAnimationFrame = window.requestAnimationFrame ||
                               window.mozRequestAnimationFrame ||
                               window.webkitRequestAnimationFrame ||
                               window.msRequestAnimationFrame ||
-                              function(callback) { setTimeout(callback, 0) };
+                              function(callback) { setTimeout(callback, 0); };
 
 export default Mixin.create(SpreadMixin, SSTransition, {
   classNames: ['ui', 'modal'],
