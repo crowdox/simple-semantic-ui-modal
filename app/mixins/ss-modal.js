@@ -17,7 +17,7 @@ export default Mixin.create(SpreadMixin, SSTransition, {
   // Defaults
   padding: 50,
   offset: 0,
-  closable: true,
+  closable: false,
 
   _isShown: false,
 
