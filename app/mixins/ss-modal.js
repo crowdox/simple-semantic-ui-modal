@@ -1,9 +1,10 @@
 import { isBlank } from '@ember/utils';
-import { bind } from '@ember/runloop';
+import { bind, scheduleOnce } from '@ember/runloop';
 import Mixin from '@ember/object/mixin';
 import SpreadMixin from 'ember-spread';
 // Relative path works since both survey and manage are in lib/...
 import SSTransition from '../mixins/ss-transition';
+import { observer } from '@ember/object';
 
 const requestAnimationFrame = window.requestAnimationFrame ||
                               window.mozRequestAnimationFrame ||
@@ -18,12 +19,23 @@ export default Mixin.create(SpreadMixin, SSTransition, {
   padding: 50,
   offset: 0,
   closable: false,
+  isActiveModal: true,
 
   _isShown: false,
 
   // Transition Defaults
   transitionMode: 'scale',
   transitionDuration: 500,
+
+  isActiveChanged: observer('isActiveModal', function() {
+    scheduleOnce('afterRender', () => {
+      if (this.get('isActiveModal')) {
+        this.$().removeClass('secondary');
+      } else {
+        this.$().addClass('secondary');
+      }
+    });
+  }),
 
   // Setup and destroy
   didInsertElement() {
