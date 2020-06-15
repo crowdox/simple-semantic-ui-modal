@@ -5,6 +5,7 @@ import SpreadMixin from 'ember-spread';
 // Relative path works since both survey and manage are in lib/...
 import SSTransition from '../mixins/ss-transition';
 import { observer } from '@ember/object';
+import jQuery from 'jquery';
 
 const requestAnimationFrame = window.requestAnimationFrame ||
                               window.mozRequestAnimationFrame ||
@@ -30,9 +31,9 @@ export default Mixin.create(SpreadMixin, SSTransition, {
   isActiveChanged: observer('isActiveModal', function() {
     scheduleOnce('afterRender', () => {
       if (this.get('isActiveModal')) {
-        this.$().removeClass('secondary');
+        jQuery(this.element).removeClass('secondary');
       } else {
-        this.$().addClass('secondary');
+        jQuery(this.element).addClass('secondary');
       }
     });
   }),
@@ -43,25 +44,25 @@ export default Mixin.create(SpreadMixin, SSTransition, {
     // Ensure scrolling is gone for initial render
     this.removeScrolling();
     // Add body classes
-    window.$('body').addClass('dimmable dimmed');
+    jQuery('body').addClass('dimmable dimmed');
     // Set values
     this.doRefresh();
     this.transitionIn();
-    window.$(window).on('resize.ss-modal-' + this.get('elementId'), bind(this, this.doRefreshWithAnimation));
+    jQuery(window).on('resize.ss-modal-' + this.get('elementId'), bind(this, this.doRefreshWithAnimation));
     if (this.get('closable')) {
-      window.$(document).on('click.ss-modal-' + this.get('elementId'), bind(this, this.checkClick));
+      jQuery(document).on('click.ss-modal-' + this.get('elementId'), bind(this, this.checkClick));
     }
     this.observeChanges();
   },
 
   willDestroyElement() {
     this._super(...arguments);
-    window.$(window).off('resize.ss-modal-' + this.get('elementId'));
-    window.$(document).off('click.ss-modal-' + this.get('elementId'));
+    jQuery(window).off('resize.ss-modal-' + this.get('elementId'));
+    jQuery(document).off('click.ss-modal-' + this.get('elementId'));
     if (this.get('observer') != null) {
       this.get('observer').disconnect();
     }
-    window.$('body').removeClass('dimmable dimmed');
+    jQuery('body').removeClass('dimmable dimmed');
   },
 
   // Events
@@ -69,9 +70,9 @@ export default Mixin.create(SpreadMixin, SSTransition, {
     if (!this.get('_isShown')) {
       return;
     }
-    let target = window.$(event.target);
-    let isInModal = target.closest(this.$()).length > 0;
-    let isInDOM = window.$.contains(window.document.documentElement, event.target);
+    let target = jQuery(event.target);
+    let isInModal = target.closest(jQuery(this.element)).length > 0;
+    let isInDOM = jQuery.contains(window.document.documentElement, event.target);
 
     if (!isInModal && isInDOM) {
       this.closeModal();
@@ -130,11 +131,11 @@ export default Mixin.create(SpreadMixin, SSTransition, {
 
   // Method functions
   getSizes() {
-    let modalHeight = this.$().outerHeight();
+    let modalHeight = jQuery(this.element).outerHeight();
     return {
-      pageHeight    : window.$(document).outerHeight(),
+      pageHeight    : jQuery(document).outerHeight(),
       height        : modalHeight + this.get('offset'),
-      contextHeight : window.$(window).height()
+      contextHeight : jQuery(window).height()
     };
   },
 
@@ -143,40 +144,40 @@ export default Mixin.create(SpreadMixin, SSTransition, {
   },
 
   removeScrolling() {
-    window.$('body').removeClass('scrolling');
-    this.$().parent().css({
+    jQuery('body').removeClass('scrolling');
+    jQuery(this.element).parent().css({
       overflow: ''
     });
-    this.$().removeClass('scrolling');
+    jQuery(this.element).removeClass('scrolling');
   },
 
   setScrolling() {
-    window.$('body').addClass('scrolling');
-    this.$().parent().css({
+    jQuery('body').addClass('scrolling');
+    jQuery(this.element).parent().css({
       overflow: 'auto'
     });
-    this.$().addClass('scrolling');
+    jQuery(this.element).addClass('scrolling');
   },
 
   setPosition(sizes) {
     if (this.canFit(sizes)) {
-      this.$().css({
+      jQuery(this.element).css({
         top: '',
         marginTop: -(sizes.height / 2)
       });
     } else {
-      this.$().css({
+      jQuery(this.element).css({
         marginTop : '',
-        top       : window.$(document).scrollTop()
+        top       : jQuery(document).scrollTop()
       });
     }
   },
 
   setScreenHeight(sizes) {
     if (this.canFit(sizes)) {
-      window.$('body').css('height', '');
+      jQuery('body').css('height', '');
     } else {
-      window.$('body').css('height', sizes.height + (this.get('padding') * 2) );
+      jQuery('body').css('height', sizes.height + (this.get('padding') * 2) );
     }
   },
 
